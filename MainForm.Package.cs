@@ -187,38 +187,6 @@ public partial class MainForm
         { foreach (var attribute in element.Attributes()) attrs.Rows.Add(location, attribute.Name.ToString(), attribute.Value); }
     }
 
-    internal void LoadPackageForCheck(string source, int page)
-    {
-        ShowProject(PackageStore.Open(source)[0], "");
-        editorPanel.Controls.OfType<TabControl>().Single().SelectedIndex = page;
-        var current = ReadProject();
-        var baseline = PackageStore.Baseline(current);
-        var snapshot = System.Text.Json.JsonSerializer.Deserialize<PartProject>(System.Text.Json.JsonSerializer.Serialize(current))!;
-        snapshot.Package = null;
-        if (System.Text.Json.JsonSerializer.Serialize(snapshot) != System.Text.Json.JsonSerializer.Serialize(baseline))
-            throw new InvalidOperationException("原包加载后，界面提交改变了未编辑字段。");
-        if (string.IsNullOrWhiteSpace(productGroup.GetItemText(productGroup.SelectedItem)))
-            throw new InvalidOperationException("原包产品组没有显示名称。");
-    }
-
-    internal void VerifyPackageEditor(string source, string folder)
-    {
-        LoadPackageForCheck(source, 0);
-        string originalMacro = project.LayoutMacro;
-        partName.Text = "界面保存检查";
-        additionalFields["RatedCurrent"].Text = "8 A";
-        currentPath = Path.Combine(folder, "ui-imported.epart.json");
-        if (!SaveCurrent()) throw new InvalidOperationException("导入资料界面保存失败。");
-        string destination = Path.Combine(folder, "ui-imported.edz");
-        EdzExporter.Export(ReadProject(), destination, catalog);
-        var readback = PackageStore.Open(destination).Single();
-        if (readback.Name != "界面保存检查" || readback.RatedCurrent != "8 A")
-            throw new InvalidOperationException("界面修改没有保存在输出 EDZ。");
-        using var first = File.OpenRead(originalMacro);
-        using var second = File.OpenRead(readback.LayoutMacro);
-        if (!System.Security.Cryptography.SHA256.HashData(first).SequenceEqual(System.Security.Cryptography.SHA256.HashData(second)))
-            throw new InvalidOperationException("界面编辑改变了未替换的原始宏。");
-    }
 }
 
 internal sealed class PackageSelectionForm : Form

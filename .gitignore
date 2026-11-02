@@ -4,3 +4,4 @@ publish/
 checks/
 .vs/
 *.user
+/验证记录*.txt

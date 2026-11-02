@@ -49,7 +49,7 @@ STEP/STP 在本版作为源文件附件，关联到“外部文档 2”。程序
 
 本地构建、UI 渲染和离线检查可以证明程序可启动、文件与清单对应、字节保留、XML 字段结构及部分输入检查正确。它们不等于 EPLAN 2.9 实际导入成功，也不证明宏可放置、三维安装方向正确或可自动布线。
 
-本版使用用户提供的 DLX.CDB6H632B8 实际部件包做保留、修改和重新打包验证，详细记录随交付包提供。没有把文件检查等同于 EPLAN 实际导入或三维放置验证。
+文件保留、编辑和导出检查位于独立的 `tests` 项目中，不编译进正式软件。检查结果保存在调用者指定的目录，不提交运行记录到仓库。
 
 ## 开发和调试
 
@@ -57,7 +57,6 @@ STEP/STP 在本版作为源文件附件，关联到“外部文档 2”。程序
 
 ```powershell
 dotnet build EplanPartBuilder.csproj -c Release
-dotnet run --project EplanPartBuilder.csproj -- --self-check C:\path\checks
 dotnet publish EplanPartBuilder.csproj -c Release -r win-x64 --self-contained true -o C:\path\publish
 ```
 
@@ -68,13 +67,20 @@ dotnet publish EplanPartBuilder.csproj -c Release -r win-x64 --self-contained tr
 - `PartValidator.cs`：导出前检查。
 - `EplanXmlWriter.cs`：EPLAN 2.9 XML 字段映射。
 - `EdzExporter.cs`：文件归档、清单和 7z 打包。
-- `SelfCheck.cs`：有独立断言的离线检查。测试中的假宏仅用于字节比较，不是可导入宏。
 - `PackageStore.cs`：安全打开目录 / 归档、读取记录、保存和恢复原包快照。
 - `PackageEditor.cs`：对原始文档作字段修改，保留其他记录及文件。
 - `MainForm.Package.cs`：导入、技术与厂家表单、原始数据核对。
-- `PackageChecks.cs`：真实样包保留、字段修改、附件替换、多部件 / 变量和异常输入验证。
+- `tests/EplanPartBuilder.Checks`：独立的基础、部件包和界面检查，不出现在主项目的代码列表中。
 
-真实样包检查命令：`dotnet .\bin\Release\net8.0-windows\EplanPartBuilder.dll --package-check <已解开样包目录> <新的检查输出目录>`。该检查针对上述 DLX 样包，检查目录应为空；其中改名、改图片的输出仅作测试，不作为正式产品部件交付。
+正常开发只需打开根目录的 `EplanPartBuilder.sln`，在 Visual Studio 中构建或发布。运行开发检查时使用下列标准命令，无需额外脚本：
+
+```powershell
+dotnet run --project tests/EplanPartBuilder.Checks -- --self-check C:\path\checks
+dotnet run --project tests/EplanPartBuilder.Checks -- --ui-check C:\path\ui-checks
+dotnet run --project tests/EplanPartBuilder.Checks -- --package-check "C:\path\已解开样包目录" C:\path\package-checks
+```
+
+部件包检查针对开发时使用的 `DLX.CDB6H632B8` 样包，检查输出目录应为空；检查生成的改名、改图片部件不作为正式产品交付。
 
 ## 格式依据
 

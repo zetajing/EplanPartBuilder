@@ -6,6 +6,7 @@ namespace EplanPartBuilder;
 
 public static class PackageChecks
 {
+    // 仅在独立检查程序中使用，不编译进正式软件。
     public static int Run(string source, string output)
     {
         output = Path.GetFullPath(output);

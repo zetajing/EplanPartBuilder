@@ -8,11 +8,22 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <AssemblyName>EplanPartBuilder</AssemblyName>
     <Version>1.1.0</Version>
+    <!-- 独立检查项目不参与主程序编译，也不显示在主项目文件列表中。 -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Data\**;Tools\**;README.md;THIRD-PARTY.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 将主窗体的界面与分部文件归到同一节点，方便查看业务代码。 -->
+    <Compile Update="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainForm.Designer.cs;MainForm.Package.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

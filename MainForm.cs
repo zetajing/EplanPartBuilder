@@ -9,7 +9,6 @@ public partial class MainForm : Form
     private string currentPath = "";
     private string savedState = "";
     private bool exporting;
-    public bool SkipClosePrompt { get; set; }
 
     public MainForm()
     {
@@ -247,7 +246,6 @@ public partial class MainForm : Form
     }
     private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
     {
-        if (SkipClosePrompt) return;
         if (exporting) { e.Cancel = true; return; }
         e.Cancel = !CheckUnsaved();
     }
@@ -260,30 +258,6 @@ public partial class MainForm : Form
     {
         string name = new(text.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
         return string.IsNullOrWhiteSpace(name) ? fallback : name.Trim();
-    }
-
-    internal void PreparePreview(int page)
-    {
-        // 仅供离线界面检查：每个标签都用同一份示例资料展示。
-        ShowProject(PartProject.RelayExample(), "");
-        editorPanel.Controls.OfType<TabControl>().Single().SelectedIndex = page;
-    }
-
-    internal void VerifyEditor(string folder)
-    {
-        ShowProject(PartProject.RelayExample(), "");
-        editorPanel.Controls.OfType<TabControl>().Single().SelectedIndex = 2;
-        functionGrid.CurrentCell = functionGrid.Rows[0].Cells["Connections"];
-        functionGrid.BeginEdit(false);
-        if (functionGrid.EditingControl is not TextBox editor) throw new InvalidOperationException("端子单元格无法进入编辑状态。");
-        editor.Text = "A1|A9";
-        if (ReadProject().Functions[0].Connections != "A1|A9") throw new InvalidOperationException("最后编辑的单元格没有提交。");
-        MoveFunction(1);
-        if (project.Functions[1].Connections != "A1|A9") throw new InvalidOperationException("功能上移下移失败。");
-        currentPath = Path.Combine(folder, "ui-saved.epart.json");
-        if (!SaveCurrent() || ProjectStore.Load(currentPath).Functions[1].Connections != "A1|A9")
-            throw new InvalidOperationException("界面保存没有包含网格最后一次编辑。");
-        if (!CheckUnsaved()) throw new InvalidOperationException("刚保存的数据错误地标记为未保存。");
     }
 
     private sealed record ProductGroupItem(int Id, string Name);
