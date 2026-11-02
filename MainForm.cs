@@ -4,7 +4,8 @@ namespace EplanPartBuilder;
 
 public partial class MainForm : Form
 {
-    private readonly List<FunctionDefinition> catalog;
+    private readonly List<FunctionDefinition> catalog = new();
+    private bool runtimeInitialized;
     private PartProject project = new();
     private string currentPath = "";
     private string savedState = "";
@@ -12,8 +13,15 @@ public partial class MainForm : Form
 
     public MainForm()
     {
-        catalog = FunctionCatalog.Load();
         InitializeComponent();
+    }
+
+    protected override void OnLoad(EventArgs e)
+    {
+        base.OnLoad(e);
+        // 设计器只显示 Designer 中的固定控件，不读取本机部件资料。
+        if (DesignMode || System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime || runtimeInitialized) return;
+        catalog.AddRange(FunctionCatalog.Load());
         productGroup.DataSource = new List<ProductGroupItem>
         {
             new(0, "未分类（0）"), new(2, "继电器 / 接触器（2）"),
@@ -23,6 +31,7 @@ public partial class MainForm : Form
         };
         productGroup.DisplayMember = nameof(ProductGroupItem.Name);
         productGroup.ValueMember = nameof(ProductGroupItem.Id);
+        runtimeInitialized = true;
         ShowProject(new PartProject(), "");
     }
 
@@ -246,6 +255,7 @@ public partial class MainForm : Form
     }
     private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
     {
+        if (!runtimeInitialized) return;
         if (exporting) { e.Cancel = true; return; }
         e.Cancel = !CheckUnsaved();
     }

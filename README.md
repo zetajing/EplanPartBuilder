@@ -55,13 +55,27 @@ STEP/STP 在本版作为源文件附件，关联到“外部文档 2”。程序
 
 需要 .NET 8 或更新 SDK。代码采用普通方法和具名事件，中文注释集中解释 XML 映射、文件引用和保存逻辑。
 
+主窗体、功能选择窗口和部件选择窗口的固定控件均在各自的 `.Designer.cs` 中声明。在 Visual Studio 中右击 `MainForm.cs`、`FunctionPickerForm.cs` 或 `PackageSelectionForm.cs`，选择“查看设计器”（Shift+F7），即可修改控件。构造函数只初始化界面，主窗体运行时再加载功能目录和资料；表格列不会随数据源自动生成。
+
+“原包数据”中的表格支持横向、纵向滚动，鼠标进入表格后接收滚轮。连接点各列保留可调整的宽度，长坐标可拖宽列查看，列宽超过窗口时使用底部滚动条。
+
 ```powershell
 dotnet build EplanPartBuilder.csproj -c Release
 dotnet publish EplanPartBuilder.csproj -c Release -r win-x64 --self-contained true -o C:\path\publish
 ```
 
+仓库提供 `Properties/PublishProfiles/Windows-x64.pubxml`，可在 Visual Studio 中选择，也可执行：
+
+```powershell
+dotnet publish EplanPartBuilder.csproj -p:PublishProfile=Windows-x64
+```
+
+输出到 `publish/win-x64`，完整复制该文件夹即可在 Windows x64 上运行，无需另装 .NET。发布使用 ReadyToRun 预编译，仍包含运行库并在部分场景使用 JIT，不是 Native AOT；文件大小不保证更小。本项目的 .NET 8 WinForms 暂不启用 Native AOT 或裁剪，原因见 [微软 WinForms 裁剪兼容性说明](https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/incompatibilities#windows-forms) 和 [ReadyToRun 说明](https://learn.microsoft.com/en-us/dotnet/core/deploying/ready-to-run)。
+
 - `MainForm.cs`：按钮事件和资料编辑。
 - `MainForm.Designer.cs`：控件与布局。
+- `FunctionPickerForm.cs` / `.Designer.cs`：功能搜索与选择窗口。
+- `PackageSelectionForm.cs` / `.Designer.cs`：原包中多个部件变量的选择窗口。
 - `PartProject.cs`：资料与功能数据。
 - `ProjectStore.cs`：JSON 读取、保存与文件原子替换。
 - `PartValidator.cs`：导出前检查。
